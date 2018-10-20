@@ -1,0 +1,12 @@
+# For Android Studio and Gradle
+*.iml
+.gradle
+
+!.idea/
+.idea/*
+!codeStyleSettings.xml
+
+/local.properties
+.DS_Store
+build
+captures

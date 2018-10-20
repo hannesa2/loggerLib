@@ -1,0 +1,79 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'digital.wup.android-maven-publish'
+apply plugin: 'org.jetbrains.dokka-android'
+
+String loggerVersionName = "1.0"
+android {
+    compileSdkVersion defaultCompileSdkVersion
+
+    defaultConfig {
+        minSdkVersion defaultMinSdkVersion
+        targetSdkVersion defaultTargetSdkVersion
+        versionCode 1
+        versionName loggerVersionName
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // For Instrumentation Unit testing
+        consumerProguardFile('proguard-rules.pro')
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenAar(MavenPublication) {
+            groupId = 'com.github.hannesa2'
+            artifactId = 'loggerLib'
+            version = loggerVersionName
+            from components.android
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "androidx.core:core:1.0.0"
+    implementation "androidx.annotation:annotation:1.0.0"
+}
+
+dokka {
+    moduleName = 'loggerLib'
+    outputFormat = 'javadoc'
+    outputDirectory = "$buildDir/javadoc"
+
+    // List of files with module and package documentation
+    // http://kotlinlang.org/docs/reference/kotlin-doc.html#module-and-package-documentation
+    includes = ['README.md']
+
+    // Use to include or exclude non public members.
+    includeNonPublic = false
+
+    // Do not output deprecated members. Applies globally, can be overridden by packageOptions
+    skipDeprecated = true
+
+    // Emit warnings about not documented members. Applies globally, also can be overridden by packageOptions
+    reportUndocumented = true
+
+    skipEmptyPackages = true // Do not create index pages for empty packages
+}
+
+task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
+    outputFormat = 'javadoc'
+    outputDirectory = "$buildDir/javadoc"
+}
+
+// build a jar with javadoc
+task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    classifier = 'javadoc'
+    from "$buildDir/javadoc"
+    archiveName = "javadoc.jar"
+}
+
+artifacts {
+    archives javadocJar
+}

@@ -1,0 +1,71 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
+
+static def getGitCommitCount() {
+    def process = "git rev-list HEAD --count".execute()
+    return process.text.toInteger()
+}
+
+def version = '1.0'
+
+android {
+    signingConfigs {
+        release {
+            keyAlias 'test'
+            keyPassword 'testtest'
+            storeFile file('test_release_keystore.jks')
+            storePassword 'testtest'
+        }
+    }
+    compileSdkVersion defaultCompileSdkVersion
+    defaultConfig {
+        applicationId "info.logger.sample"
+        minSdkVersion defaultMinSdkVersion
+        targetSdkVersion defaultTargetSdkVersion
+        versionCode getGitCommitCount()
+        versionName version + "." + versionCode
+
+        testInstrumentationRunner = 'androidx.test.runner.AndroidJUnitRunner'
+    }
+    dataBinding.enabled = true
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix ".debug"
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), "$projectDir/proguard-rules.pro"
+            //test apk will have proguard applied to it so we detect any crashes or anomalies during espresso tests
+            testProguardFiles getDefaultProguardFile('proguard-android.txt'), "$projectDir/proguard-rules.pro", "$projectDir/proguard-test-rules.pro"
+            minifyEnabled true
+            useProguard true
+            shrinkResources true
+        }
+        release {
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), "$projectDir/proguard-rules.pro"
+            //test apk will have proguard applied to it so we detect any crashes or anomalies during espresso tests
+            testProguardFiles getDefaultProguardFile('proguard-android.txt'), "$projectDir/proguard-rules.pro"
+            minifyEnabled true
+            useProguard true
+            shrinkResources true
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation project(':logger')
+
+    androidTestImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.1.0-beta02'
+    androidTestImplementation 'androidx.test:rules:1.1.0-beta02'
+    //  UI testing with Espresso
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-beta02'
+}
