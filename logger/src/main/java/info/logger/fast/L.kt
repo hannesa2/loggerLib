@@ -30,6 +30,7 @@ object L {
     private var logFileName = "mylogger.log"
     private var tempList: MutableList<String>? = null
 
+    @JvmStatic
     val logFile: File?
         get() {
             var gpxfile: File? = null

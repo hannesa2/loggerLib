@@ -45,7 +45,7 @@ allprojects {
 ```
 ```Gradle
 dependencies {
-    implementation 'com.github.hannesa2:loggerLib:1.0' 
+    implementation 'com.github.hannesa2:loggerLib:1.1' 
 }
 
 ```
