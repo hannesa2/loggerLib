@@ -10,6 +10,7 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        L.setDebug(BuildConfig.DEBUG)
         L.changeLogFileName("myfilenameAnywhereInFileSystem.log")
         L.setLogToFileEnabled(true, this)
 

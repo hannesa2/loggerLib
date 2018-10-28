@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Logging class that logs to LogCat if BuildConfig.DEBUG is true
+ * Logging class that logs to LogCat if debug is true
  * and logs Info, Warning and Error messages to a log file if LOG_TO_FILE is true.
  */
 object L {
@@ -29,6 +29,12 @@ object L {
     private var sOut: BufferedWriter? = null
     private var logFileName = "mylogger.log"
     private var tempList: MutableList<String>? = null
+    private var debug = false
+
+    @JvmStatic
+    fun setDebug(value: Boolean) {
+        debug = value
+    }
 
     @JvmStatic
     val logFile: File?
@@ -85,7 +91,7 @@ object L {
         val tagAndMessage = formatLogTagAndMessage(tag, message)
 
         // only log to LogCat if we are in debug mode
-        if (BuildConfig.DEBUG) {
+        if (debug) {
             Log.v(tagAndMessage[0], tagAndMessage[1])
         }
 
@@ -128,7 +134,7 @@ object L {
         val tagAndMessage = formatLogTagAndMessage(tag, message)
 
         // only log to LogCat if we are in debug mode
-        if (BuildConfig.DEBUG) {
+        if (debug) {
             Log.d(tagAndMessage[0], tagAndMessage[1])
         }
 
@@ -171,7 +177,7 @@ object L {
         val tagAndMessage = formatLogTagAndMessage(tag, message)
 
         // only log to LogCat if we are in debug mode
-        if (BuildConfig.DEBUG) {
+        if (debug) {
             Log.i(tagAndMessage[0], tagAndMessage[1])
         }
 
@@ -215,7 +221,7 @@ object L {
         val tagAndMessage = formatLogTagAndMessage(tag, message)
 
         // only log to LogCat if we are in debug mode
-        if (BuildConfig.DEBUG) {
+        if (debug) {
             Log.w(tagAndMessage[0], tagAndMessage[1])
         }
 
@@ -243,7 +249,7 @@ object L {
      */
     @JvmStatic
     fun w(e: Throwable) {
-        if (BuildConfig.DEBUG) {
+        if (debug) {
             e.printStackTrace()
         }
 
@@ -276,7 +282,7 @@ object L {
         val tagAndMessage = formatLogTagAndMessage(tag, message)
 
         // only log to LogCat if we are in debug mode
-        if (BuildConfig.DEBUG) {
+        if (debug) {
             Log.e(tagAndMessage[0], tagAndMessage[1])
         }
 
@@ -304,7 +310,7 @@ object L {
      */
     @JvmStatic
     fun e(e: Throwable) {
-        if (BuildConfig.DEBUG) {
+        if (debug) {
             e.printStackTrace()
         }
 
@@ -324,7 +330,7 @@ object L {
      */
     @JvmStatic
     fun throwExceptionOrLogError(tag: String, message: String) {
-        if (BuildConfig.DEBUG) {
+        if (debug) {
             throw RuntimeException("$tag $message")
         } else {
             e(tag, message)
