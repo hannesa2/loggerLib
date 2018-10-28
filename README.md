@@ -17,9 +17,10 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        L.setDebug(BuildConfig.DEBUG) // has to be set from outside, because in aar BuildConfig.DEBUG is always false
-        L.changeLogFileName("myfilenameAnywhereInFileSystem.log")
-        L.setLogToFileEnabled(true, this)
+        L.Builder(BuildConfig.DEBUG)
+                .changeLogFileName("myfilenameAnywhereInFileSystem.log")
+                .setLogToFileEnabled(true, this)
+                .build()
     }
 }
 ```
