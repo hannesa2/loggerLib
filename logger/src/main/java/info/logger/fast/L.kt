@@ -1,23 +1,24 @@
 package info.logger.fast
 
 import android.Manifest
+import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Environment
 import android.util.Log
 import androidx.annotation.NonNull
-import androidx.core.content.ContextCompat
-import info.hannes.logger.BuildConfig
 import org.jetbrains.annotations.Nullable
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.core.content.ContextCompat
 
-/**
- * Logging class that logs to LogCat if debug is true
- * and logs Info, Warning and Error messages to a log file if LOG_TO_FILE is true.
- */
 object L {
+
+    private var filename: String? = null
+    private var fileEnable: Boolean = false
+    private var application: Application? = null
+    private var debug: Boolean = false
 
     private val DATE_FORMAT = "yyyy-MM-dd HH:mm:ssZ"
     private val CUT_LOGFILE = true
@@ -27,13 +28,35 @@ object L {
         private set
     private var sInitiated = false
     private var sOut: BufferedWriter? = null
-    private var logFileName = "mylogger.log"
     private var tempList: MutableList<String>? = null
-    private var debug = false
 
-    @JvmStatic
-    fun setDebug(value: Boolean) {
-        debug = value
+    private enum class MsgType {
+        E, W, I
+    }
+
+    class Builder(private val debug: Boolean) {
+        private var filename: String? = null
+        private var fileEnable: Boolean = false
+        private var application: Application? = null
+
+        fun build(): Unit {
+
+            L.debug = debug
+            L.filename = filename
+            L.fileEnable = fileEnable
+            L.application = application
+        }
+
+        fun changeLogFileName(filename: String): Builder {
+            this.filename = filename
+            return this
+        }
+
+        fun setLogToFileEnabled(fileEnable: Boolean, application: Application): Builder {
+            this.fileEnable = fileEnable
+            this.application = application
+            return this
+        }
     }
 
     @JvmStatic
@@ -42,31 +65,11 @@ object L {
             var gpxfile: File? = null
             val sRoot = Environment.getExternalStorageDirectory()
             if (sRoot != null && sRoot.canWrite()) {
-                gpxfile = File(sRoot, logFileName)
+                gpxfile = File(sRoot, L.filename)
             }
             return gpxfile
         }
 
-    private enum class MsgType {
-        E, W, I
-    }
-
-    /**
-     * ***************************************************
-     * **************** CONFIG METHODS *********************
-     * ****************************************************
-     */
-
-    @JvmStatic
-    fun setLogToFileEnabled(enabled: Boolean, context: Context) {
-        isLogToFileEnabled = enabled
-        hasAppWritePermission(context)
-    }
-
-    @JvmStatic
-    fun changeLogFileName(newName: String) {
-        logFileName = newName
-    }
 
     /**
      * Log a message on the verbose level
@@ -182,7 +185,7 @@ object L {
         }
 
         // only executes if LOG_TO_FILE is enabled
-        writeLogToSD(MsgType.I, tagAndMessage[1])
+        writeLogToSD(L.MsgType.I, tagAndMessage[1])
     }
 
     /**
@@ -226,7 +229,7 @@ object L {
         }
 
         // only executes if LOG_TO_FILE is enabled
-        writeLogToSD(MsgType.W, tagAndMessage[1])
+        writeLogToSD(L.MsgType.W, tagAndMessage[1])
     }
 
     /**
@@ -257,7 +260,7 @@ object L {
         val pw = PrintWriter(sw)
         e.printStackTrace(pw)
         // only executes if LOG_TO_FILE is enabled
-        writeLogToSD(MsgType.W, sw.toString())
+        writeLogToSD(L.MsgType.W, sw.toString())
     }
 
     /**
@@ -287,7 +290,7 @@ object L {
         }
 
         // only executes if LOG_TO_FILE is enabled
-        writeLogToSD(MsgType.E, tagAndMessage[1])
+        writeLogToSD(L.MsgType.E, tagAndMessage[1])
     }
 
     /**
@@ -318,7 +321,7 @@ object L {
         val pw = PrintWriter(sw)
         e.printStackTrace(pw)
         // only executes if LOG_TO_FILE is enabled
-        writeLogToSD(MsgType.E, sw.toString())
+        writeLogToSD(L.MsgType.E, sw.toString())
     }
 
     /**
@@ -377,39 +380,39 @@ object L {
      * After cleanup, cache is stored to file
      */
     private fun initFileLogging() {
-        if (isLogToFileEnabled) {
-            if (!sInitiated) {
-                sInitiated = true
+        if (L.fileEnable) {
+            if (!L.sInitiated) {
+                L.sInitiated = true
                 //tempList is needed during cleanup of Logfile, after cleanup info is transferred to file
-                if (tempList == null) {
-                    tempList = ArrayList()
+                if (L.tempList == null) {
+                    L.tempList = ArrayList()
                 }
                 try {
                     //first make a copy
-                    val gpxfile = logFile
+                    val gpxfile = L.logFile
                     if (gpxfile != null) {
-                        if (CUT_LOGFILE) {
+                        if (L.CUT_LOGFILE) {
 
                             val gpxfileTmp = File(gpxfile.absoluteFile.toString() + ".tmp")
                             gpxfile.renameTo(gpxfileTmp.absoluteFile)
 
                             // cut old log entries
-                            cutLogFile(gpxfile, gpxfileTmp, KEEP_DAYS)
+                            cutLogFile(gpxfile, gpxfileTmp, L.KEEP_DAYS)
                             gpxfileTmp.delete()
                         }
 
 
                         val sGpxWriter = FileWriter(gpxfile, true)
-                        sOut = BufferedWriter(sGpxWriter)
+                        L.sOut = BufferedWriter(sGpxWriter)
 
-                        if (CUT_LOGFILE) {
+                        if (L.CUT_LOGFILE) {
                             // write during now cached lines to file
-                            for (line in tempList!!) {
-                                sOut!!.write(line)
+                            for (line in L.tempList!!) {
+                                L.sOut!!.write(line)
                             }
-                            tempList!!.clear()
+                            L.tempList!!.clear()
                         }
-                        sOut!!.flush()
+                        L.sOut!!.flush()
                     } else {
                         Log.e("SD_LOGGER", "no loggerfile")
                     }
@@ -426,7 +429,7 @@ object L {
         var write = 0
         val start = System.currentTimeMillis()
         val inStream: InputStream
-        val sdf = SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
+        val sdf = SimpleDateFormat(L.DATE_FORMAT, Locale.getDefault())
         try {
             inStream = FileInputStream(toLogFileTmp)
 
@@ -479,20 +482,20 @@ object L {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun writeLogToSD(kind: MsgType, log: String) {
-        if (isLogToFileEnabled && WRITE_PERMISSION) {
+    private fun writeLogToSD(kind: L.MsgType, log: String) {
+        if (L.isLogToFileEnabled && WRITE_PERMISSION) {
             try {
                 initFileLogging()
                 val sdf = SimpleDateFormat.getInstance() as SimpleDateFormat
-                sdf.applyPattern(DATE_FORMAT)
+                sdf.applyPattern(L.DATE_FORMAT)
                 val now = Date(System.currentTimeMillis())
 
                 val logInfo = sdf.format(now) + "|" + kind.name + ":" + log + "\n"
-                if (sOut != null) {
-                    sOut!!.write(logInfo)
-                    sOut!!.flush()
+                if (L.sOut != null) {
+                    L.sOut!!.write(logInfo)
+                    L.sOut!!.flush()
                 } else {
-                    tempList!!.add(logInfo)
+                    L.tempList!!.add(logInfo)
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
