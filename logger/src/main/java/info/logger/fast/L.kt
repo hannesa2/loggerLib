@@ -37,9 +37,8 @@ object L {
     class Builder(private val debug: Boolean) {
         private var filename: String? = null
         private var fileEnable: Boolean = false
-        private var application: Application? = null
 
-        fun build(): Unit {
+        fun build() {
 
             L.debug = debug
             L.filename = filename
@@ -47,14 +46,13 @@ object L {
             L.application = application
         }
 
-        fun changeLogFileName(filename: String): Builder {
+        fun logFileName(filename: String): Builder {
             this.filename = filename
             return this
         }
 
-        fun setLogToFileEnabled(fileEnable: Boolean, application: Application): Builder {
-            this.fileEnable = fileEnable
-            this.application = application
+        fun logToFile(fileEnable: Boolean, context: Context): Builder {
+            this.fileEnable = fileEnable && hasAppWritePermission(context)
             return this
         }
     }

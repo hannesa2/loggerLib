@@ -10,8 +10,8 @@ class MyApplication : Application() {
         super.onCreate()
 
         L.Builder(BuildConfig.DEBUG)
-                .changeLogFileName("myfilenameAnywhereInFileSystem.log")
-                .setLogToFileEnabled(true, this)
+                .logFileName("myfilenameAnywhereInFileSystem.log")
+                .logToFile(true, this)
                 .build()
 
         StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder()
