@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.ContextCompat
 
+@Suppress("unused")
 object L {
 
     private var filename: String? = null
